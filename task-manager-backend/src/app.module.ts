@@ -10,7 +10,7 @@ import { TasksModule } from './tasks/tasks.module';
       host: 'localhost',
       port: 5432,
       username: 'develtask_user',
-      password: '200565',
+      password: 'my_password',
       database: 'devel_task',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
