@@ -13,6 +13,6 @@ export class CreateTaskDto {
   @IsString()
   date: string;
 
-  @IsString() // Novo campo para associar ao usuário
+  @IsString()
   username: string;
 }

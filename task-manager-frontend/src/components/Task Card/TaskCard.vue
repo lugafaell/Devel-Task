@@ -6,6 +6,7 @@
       animate__fadeOutDown: isBeingRemoved,
     }"
     :style="{ animationDelay: !isBeingRemoved ? `${index * 0.2}s` : '0s' }"
+    @click="$emit('click')"
   >
     <h3>{{ title }}</h3>
     <p>{{ description }}</p>
@@ -17,7 +18,7 @@
     <div class="task-footer">
       <span :class="['task-status', statusClass]">{{ statusText }}</span>
       <div class="task-actions">
-        <i class="fas fa-trash" @click="handleDeleteTask"></i>
+        <i class="fas fa-trash" @click.stop="handleDeleteTask"></i>
       </div>
     </div>
   </div>

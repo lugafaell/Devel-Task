@@ -45,6 +45,7 @@
           :completed="task.completed"
           :index="index"
           @delete-task="removeTask"
+          @click="openUpdateTaskModal(task)"
         />
       </div>
     </div>
@@ -54,12 +55,20 @@
       @close="showModal = false"
       @add-task="addTask"
     />
+
+    <UpdateTaskModal
+      :isVisible="showUpdateModal"
+      :task="selectedTask"
+      @close="closeUpdateTaskModal"
+      @update-task="updateTask"
+    />
   </div>
 </template>
 
 <script>
 import TaskCard from "../components/Task Card/TaskCard.vue";
 import AddTaskModal from "../components/addTaskModal/AddTaskModal.vue";
+import UpdateTaskModal from "../components/updateTaskModal/UpdateTaskModal.vue";
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -67,11 +76,14 @@ export default {
   components: {
     TaskCard,
     AddTaskModal,
+    UpdateTaskModal,
   },
   data() {
     return {
       tasks: [],
       showModal: false,
+      showUpdateModal: false,
+      selectedTask: null,
       username: "",
     };
   },
@@ -90,6 +102,23 @@ export default {
     async removeTask(taskId) {
       await axios.delete(`http://localhost:3000/tasks/${taskId}`);
       this.tasks = this.tasks.filter((task) => task.id !== taskId);
+    },
+    async updateTask(updatedTask) {
+      await axios.put(`http://localhost:3000/tasks/${updatedTask.id}`, updatedTask);
+      this.fetchTasks();
+      this.closeUpdateTaskModal();
+    },
+    openUpdateTaskModal(task) {
+  if (task) {
+    this.selectedTask = task;
+    this.showUpdateModal = true;
+  } else {
+    console.error("Task is null or undefined:", task);
+  }
+},
+    closeUpdateTaskModal() {
+      this.selectedTask = null;
+      this.showUpdateModal = false;
     },
     logout() {
       Cookies.remove("user");
@@ -119,7 +148,7 @@ export default {
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Alinha o conteúdo para ocupar o espaço */
+  justify-content: space-between;
 }
 
 .user-info {
@@ -204,10 +233,11 @@ export default {
   padding: 0;
   flex-grow: 1;
   margin-bottom: auto;
+  margin-top: auto;
 }
 
 .menu-list li {
-  margin: 40px 0;
+  margin: 20px 0;
   cursor: pointer;
 }
 
