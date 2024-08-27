@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { CreateTaskDto } from './create-task.dto';
 import { UpdateTaskDto } from './update-task.dto';
-import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -57,5 +56,4 @@ export class TaskService {
 
     return this.tasksRepository.save(task);
   }
-
 }

@@ -121,7 +121,7 @@ body {
 }
 
 .login-left {
-  background-color: #fff9e3;
+  background-color: #fbfcf8;
   padding: 20px;
 }
 
@@ -146,7 +146,7 @@ body {
   border: none;
   border-bottom: 1.5px solid #ababab;
   box-sizing: border-box;
-  background-color: #fff9e3;
+  background-color: #fbfcf8;
 }
 
 .btn-signin {

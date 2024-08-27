@@ -14,15 +14,31 @@
       </button>
 
       <ul class="menu-list">
-        <li>All tasks</li>
-        <li>Today's tasks</li>
-        <li>Important tasks</li>
-        <li>Completed tasks</li>
-        <li>Uncompleted tasks</li>
+        <li @click="setFilter('all')">All tasks</li>
+        <li @click="setFilter('completed')">Completed tasks</li>
+        <li @click="setFilter('uncompleted')">Uncompleted tasks</li>
+
+        <h3 @click="toggleDirectories" class="directory-header">
+          Directories
+          <i
+            :class="{
+              'fas fa-chevron-down': showDirectories,
+              'fas fa-chevron-right': !showDirectories,
+            }"
+          ></i>
+        </h3>
+        <ul v-if="showDirectories" class="directory-list">
+          <li v-for="directory in directories" :key="directory.id">
+            {{ directory.name }}
+          </li>
+        </ul>
       </ul>
 
       <div class="user-info">
-        <p>Welcome, {{ username }}</p>
+        <div class="user-avatar">
+          <div class="avatar">{{ userInitials }}</div>
+          <p>Welcome, {{ username }}</p>
+        </div>
         <button class="logout-button" @click="logout">
           <i class="fas fa-sign-out-alt"></i>
         </button>
@@ -32,11 +48,20 @@
     <div class="task-list">
       <header class="header">
         <input class="search-bar" type="search" placeholder="Search task" />
-        <h2 class="all-tasks-title">All tasks ({{ tasks.length }} tasks)</h2>
+        <h2 class="all-tasks-title">
+          {{
+            filterType === "all"
+              ? "All tasks"
+              : filterType === "completed"
+              ? "Completed tasks"
+              : "Uncompleted tasks"
+          }}
+          ({{ filteredTasks().length }} tasks)
+        </h2>
       </header>
       <div class="tasks">
         <TaskCard
-          v-for="(task, index) in tasks"
+          v-for="(task, index) in filteredTasks()"
           :key="task.id"
           :id="task.id"
           :title="task.title"
@@ -85,11 +110,31 @@ export default {
       showUpdateModal: false,
       selectedTask: null,
       username: "",
+      userInitials: "",
+      filterType: "all",
+      showDirectories: false,
+      directories: [
+        { id: 1, name: "Diretório 1" },
+        { id: 2, name: "Diretório 2" },
+        { id: 3, name: "Diretório 3" },
+      ],
     };
   },
   methods: {
+    getUserInitials(name) {
+      const names = name.split(" ");
+      if (names.length === 1) return names[0][0].toUpperCase();
+      return (
+        names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase()
+      );
+    },
+    getFirstName(name) {
+      return name.split(" ")[0];
+    },
     async fetchTasks() {
       this.username = Cookies.get("user");
+      this.userInitials = this.getUserInitials(this.username);
+      this.username = this.getFirstName(this.username); // Atualiza para mostrar apenas o primeiro nome
       const response = await axios.get(
         `http://localhost:3000/tasks/${this.username}`
       );
@@ -104,18 +149,21 @@ export default {
       this.tasks = this.tasks.filter((task) => task.id !== taskId);
     },
     async updateTask(updatedTask) {
-      await axios.put(`http://localhost:3000/tasks/${updatedTask.id}`, updatedTask);
+      await axios.put(
+        `http://localhost:3000/tasks/${updatedTask.id}`,
+        updatedTask
+      );
       this.fetchTasks();
       this.closeUpdateTaskModal();
     },
     openUpdateTaskModal(task) {
-  if (task) {
-    this.selectedTask = task;
-    this.showUpdateModal = true;
-  } else {
-    console.error("Task is null or undefined:", task);
-  }
-},
+      if (task) {
+        this.selectedTask = task;
+        this.showUpdateModal = true;
+      } else {
+        console.error("Task is null or undefined:", task);
+      }
+    },
     closeUpdateTaskModal() {
       this.selectedTask = null;
       this.showUpdateModal = false;
@@ -123,6 +171,21 @@ export default {
     logout() {
       Cookies.remove("user");
       this.$router.push("/");
+    },
+    setFilter(type) {
+      this.filterType = type;
+    },
+    filteredTasks() {
+      if (this.filterType === "completed") {
+        return this.tasks.filter((task) => task.completed === true);
+      } else if (this.filterType === "uncompleted") {
+        return this.tasks.filter((task) => task.completed === false);
+      } else {
+        return this.tasks; // Retorna todas as tasks
+      }
+    },
+    toggleDirectories() {
+      this.showDirectories = !this.showDirectories;
     },
   },
   created() {
@@ -132,6 +195,33 @@ export default {
 </script>
 
 <style scoped>
+.directories-section {
+  margin-top: 20px;
+}
+
+.directory-header {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.directory-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.directory-list li {
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+.directory-list li:hover {
+  color: #a35eff;
+}
+
 .tasks-view {
   display: flex;
   height: 100vh;
@@ -159,10 +249,29 @@ export default {
   border-top: 1px solid #ddd;
 }
 
+.user-avatar {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #a35eff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
 .user-info p {
   margin: 0;
   font-size: 16px;
   font-weight: bold;
+  margin-left: 10px;
 }
 
 .logout-button {
@@ -237,12 +346,29 @@ export default {
 }
 
 .menu-list li {
-  margin: 20px 0;
+  margin: 0;
   cursor: pointer;
+  text-align: left;
+  padding: 10px 15px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  width: calc(100% + 5px);
+  left: -15px;
 }
 
 .menu-list li:hover {
+  background-color: #f3e7f7;
   color: #a35eff;
+}
+
+.menu-list li:hover::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #a35eff;
 }
 
 .header {
